@@ -51,6 +51,7 @@ DROP TABLE IF EXISTS `mydb`.`user` ;
 
 CREATE TABLE IF NOT EXISTS `mydb`.`user` (
   `user_id` INT NOT NULL AUTO_INCREMENT,
+  `user_login` VARCHAR(255) NOT NULL,
   `user_firstname` VARCHAR(255) NOT NULL,
   `user_lastname` VARCHAR(255) NOT NULL,
   `user_patronymic` VARCHAR(255) NOT NULL,
