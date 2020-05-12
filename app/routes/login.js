@@ -28,6 +28,7 @@ router.post('/auth', (req, res, next) =>{
     }
 });
 
+
 router.get('/home', (req, res, next) =>{
     if (req.session.loggedin) {
         res.send('Welcome back, ' + req.session.username + '!');
@@ -35,6 +36,28 @@ router.get('/home', (req, res, next) =>{
         res.send('Please login to view this page!');
     }
     res.end();
+});
+
+
+router.get('/student/list', (req, res, next) =>{
+    actions.list_students(req.query.group, (result) => {
+        if (result.length > 0) {
+            let data = {
+                group_id: req.query.group,
+                students: []
+            };
+            for(var j = 0; j < result.length; j++){
+                data.students.push(Object.assign({}, result[j]))
+            }
+            console.log(JSON.stringify(data));
+            res.send(JSON.stringify(data));
+        }else {
+            res.send('Uncorrect user id');
+        }
+        res.end();
+    });
+    // res.sendFile(path.resolve('public/login.html'));
+    console.log('main users-controller page');
 });
 
 module.exports = router;

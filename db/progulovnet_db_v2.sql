@@ -148,35 +148,15 @@ CREATE TABLE IF NOT EXISTS `mydb`.`user_has_role` (
   `user_has_role_id` INT NOT NULL AUTO_INCREMENT,
   `user_id` INT NOT NULL,
   `role_id` INT NOT NULL,
-  `group_id` INT NOT NULL,
-  `subjects_id` INT NOT NULL,
+  `group_id` INT,
+  `subjects_id` INT,
   `uhr_granted` DATETIME NOT NULL,
   `uhr_revoked` DATETIME NULL,
   PRIMARY KEY (`user_has_role_id`),
   INDEX `fk_user_has_role_user1_idx` (`user_id` ASC),
   INDEX `fk_user_has_role_role1_idx` (`role_id` ASC),
   INDEX `fk_user_has_role_group1_idx` (`group_id` ASC),
-  INDEX `fk_user_has_role_subjects1_idx` (`subjects_id` ASC),
-  CONSTRAINT `fk_user_has_role_user1`
-    FOREIGN KEY (`user_id`)
-    REFERENCES `mydb`.`user` (`user_id`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
-  CONSTRAINT `fk_user_has_role_role1`
-    FOREIGN KEY (`role_id`)
-    REFERENCES `mydb`.`role` (`role_id`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
-  CONSTRAINT `fk_user_has_role_group1`
-    FOREIGN KEY (`group_id`)
-    REFERENCES `mydb`.`group` (`group_id`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
-  CONSTRAINT `fk_user_has_role_subjects1`
-    FOREIGN KEY (`subjects_id`)
-    REFERENCES `mydb`.`subjects` (`subjects_id`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
+  INDEX `fk_user_has_role_subjects1_idx` (`subjects_id` ASC))
 ENGINE = InnoDB;
 
 
