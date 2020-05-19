@@ -60,4 +60,97 @@ router.get('/student/list', (req, res, next) =>{
     console.log('main users-controller page');
 });
 
+/*
+    function to get all the groups
+    input: NONE
+    output: JSON {groups[{group_id, group_title, group_programe, group_description}]}
+ */
+
+router.get('/group/list', (req, res, next) => {
+    actions.list_groups((result) => {
+        if (result.length > 0) {
+            let data = {
+                groups: []
+            };
+            for(var j = 0; j < result.length; j++){
+                data.groups.push(Object.assign({}, result[j]))
+            }
+            console.log(JSON.stringify(data));
+            res.send(JSON.stringify(data));
+        }else {
+            res.send('err select list of groups');
+        }
+    });
+});
+
+/*
+    function to get all the lecturers
+    input: NONE
+    output: JSON {lecturers[{user_id, user_lastname, user_firstname, user_patronymic}]}
+ */
+
+router.get('/lecturer/list', (req, res, next) => {
+    actions.list_teachers((result) => {
+        if (result.length > 0) {
+            let data = {
+                lecturers: []
+            };
+            for(var j = 0; j < result.length; j++){
+                data.lecturers.push(Object.assign({}, result[j]))
+            }
+            console.log(JSON.stringify(data));
+            res.send(JSON.stringify(data));
+        }else {
+            res.send('err select list of lecturers');
+        }
+    });
+});
+
+/*
+    function to get all the subjects
+    input: NONE
+    output: JSON {subjects[{subject_id, subject_name, group_programe}]}
+ */
+
+router.get('/subjects/list', (req, res, next) => {
+    actions.list_subjects((result) => {
+        if (result.length > 0) {
+            let data = {
+                subjects: []
+            };
+            for(var j = 0; j < result.length; j++){
+                data.subjects.push(Object.assign({}, result[j]))
+            }
+            console.log(JSON.stringify(data));
+            res.send(JSON.stringify(data));
+        }else {
+            res.send('err select list of subjects');
+        }
+    });
+});
+
+/*
+    function to get all the subjects
+    input: NONE
+    output: JSON {subjects[{subject_id, subject_name, group_programe}]}
+ */
+
+/* TODO test data*/
+router.get('/attendance/group', (req, res, next) => {
+    actions.list_attendance_group(req.query.group,(result) => {
+        if (result.length > 0) {
+            let data = {
+                attendance: []
+            };
+            for(var j = 0; j < result.length; j++){
+                data.attendance.push(Object.assign({}, result[j]))
+            }
+            console.log(JSON.stringify(data));
+            res.send(JSON.stringify(data));
+        }else {
+            res.send('err select list of subjects');
+        }
+    });
+});
+
 module.exports = router;

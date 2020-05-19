@@ -43,7 +43,7 @@ class DatabaseManager {
     list_students(group_id, callback){
 
         this.#getConnection().then((conn) => {
-            var sql = "SELECT user.user_id, user.user_firstname, user.user_lastname, user.user_patronymic FROM user, user_has_role\n" +
+            var sql = "SELECT user.user_id, user.user_lastname, user.user_firstname, user.user_patronymic FROM user, user_has_role\n" +
 		"WHERE user_has_role.group_id = '" + group_id +
 		"' AND user_has_role.user_id = user.user_id ;";
             conn.query(sql, (err, result, fields) => {
@@ -58,7 +58,7 @@ class DatabaseManager {
 
     list_groups(callback){
         this.#getConnection().then((conn) => {
-            var sql = "SELECT * FROM group;";
+            var sql = "SELECT * FROM `group`;";
             conn.query(sql, (err, result, fields) => {
                     if (err) throw err;
                         callback(result);

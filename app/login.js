@@ -15,6 +15,11 @@ app.use(bodyParser.urlencoded({extended : true}));
 app.use(bodyParser.json());
 
 app.use('/', routes);
+app.use('/user', routes);
+app.use('/group', routes);
+app.use('/lecturer', routes);
+app.use('/subject', routes);
+app.use('/attendance', routes);
 
 module.exports = app;
 
