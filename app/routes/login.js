@@ -130,6 +130,22 @@ router.get('/subjects/list', (req, res, next) => {
 });
 
 /*
+    function to get the one user by id
+    input: user_id
+    output: {"user": {firstname...}}
+ */
+
+router.get('/user/get', (req, res, next) => {
+    actions.user_get(req.query.user_id , (result) => {
+        if (result.length > 0) {
+            res.send(JSON.stringify(result));
+        }else {
+            res.send('err select list of subjects');
+        }
+    });
+});
+
+/*
     function to get all the subjects
     input: NONE
     output: JSON {subjects[{subject_id, subject_name, group_programe}]}
@@ -154,11 +170,48 @@ router.get('/attendance/group', (req, res, next) => {
 });
 
 /*
- test data: {}
+    input: JSON(example below)
+    output: confirm message
+
+    test body:
+    {
+    "user": {
+        "firstname": "Иван",
+        "lastname": "Иванов",
+        "patronymic": "Иванович",
+        "role": 1,
+        "login": "1721000",
+        "password": "potom zashefryu",
+        "group": "22300"
+    }
+    }
  */
 
 router.post('/student/add', (req, res, next) => {
     actions.user_add(req.body.user,(result) => {
+        if (result.length > 0) {
+            res.send('add the user')
+        } else {
+            res.send('an error for add')
+        }
+    });
+});
+
+/*
+    input: JSON(example below)
+    output: confirm message
+
+    test body:
+    {
+    "subject": {
+        "name": "Введение в тестирование",
+        "programe": "09.00.00"
+    }
+    }
+ */
+
+router.post('/subject/add', (req, res, next) => {
+    actions.add_subject(req.body.subject,(result) => {
         if (result.length > 0) {
             res.send('add the user')
         } else {

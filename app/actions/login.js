@@ -159,14 +159,14 @@ class DatabaseManager {
         })
     }
     
-    user_get(callback, user_id){
+    user_get(user_id, callback){
 	this.#getConnection().then((conn) => {
-            var sql = "select * from user where user_id='" + user_id + "';";
-            conn.query(sql, (err, results, fields) => {
-		if (err) throw err;
+	    var sql = "select * from user where user_id='" + user_id + "';";
+        conn.query(sql, (err, results, fields) => {
+		    if (err) throw err;
                 callback(results);
                 conn.release();
-            });
+        });
 	})
     }
     
@@ -180,33 +180,30 @@ class DatabaseManager {
 	})
     }
 
-    add_subject(name, programe){
-	
-	this.#getConnection().then((conn) => {
-	    var sql = "insert into subjects (subjects_name, subjects_programe) " +
-		"values ('" + name + "', '" + programe + "');";
+    add_subject(subject_info){
+        this.#getConnection().then((conn) => {
+            console.log(subject_info)
+            var sql = "insert into subjects (subjects_name, subjects_programe) " +
+            "values ('" + subject_info.name + "', '" + subject_info.programe + "');";
             conn.query(sql, (err, results, fields) => {
-		if (err) throw err;
-                conn.release();
+                if (err) throw err;
+                    conn.release();
             });
-	    
-	})
+        })
     }
 
     // сделать старостой
     // должна быть соответствующая роль в таблице role
     make_user_headman(user_id, group_id){
-	
-	this.#getConnection().then((conn) => {
-	    var sql = "INSERT INTO user_has_role\n" +
-		"(user_id, role_id, group_id) values (" + user_id + ", (SELECT role.role_id FROM role WHERE role.role_code = " + 3 + ", + " + group_id + ");"; 
-            conn.query(sql, (err, results, fields) => {
-		if (err) throw err;
-                conn.release();
-            });
-	    
-	})
+        this.#getConnection().then((conn) => {
+            var sql = "INSERT INTO user_has_role\n" +
+            "(user_id, role_id, group_id) values (" + user_id + ", (SELECT role.role_id FROM role WHERE role.role_code = " + 3 + ", + " + group_id + ");";
+                conn.query(sql, (err, results, fields) => {
+            if (err) throw err;
+                    conn.release();
+                });
 
+        })
     }
 
     // упроздняет всех старост в группе

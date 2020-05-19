@@ -4,7 +4,9 @@
 // */
 //
 
-
+for (var i; i < 25; i++){
+    console.log();
+}
 
 // var express = require('express');
 // var session = require('express-session');
