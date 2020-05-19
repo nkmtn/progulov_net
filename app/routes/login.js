@@ -153,4 +153,18 @@ router.get('/attendance/group', (req, res, next) => {
     });
 });
 
+/*
+ test data: {}
+ */
+
+router.post('/student/add', (req, res, next) => {
+    actions.user_add(req.body.user,(result) => {
+        if (result.length > 0) {
+            res.send('add the user')
+        } else {
+            res.send('an error for add')
+        }
+    });
+});
+
 module.exports = router;

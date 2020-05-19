@@ -5,6 +5,7 @@ var bodyParser = require('body-parser');
 var routes = require('./routes/login');
 
 var app = express();
+app.use(express.json())
 app.use(session({
     secret: 'secret',
     resave: true,

@@ -1,5 +1,20 @@
 var mysql = require('mysql');
 
+/*
+ Way to convert date to DATETIME
+ */
+
+function twoDigits(d) {
+    if(0 <= d && d < 10) return "0" + d.toString();
+    if(-10 < d && d < 0) return "-0" + (-1*d).toString();
+    return d.toString();
+}
+
+Date.prototype.toMysqlFormat = function() {
+    return this.getUTCFullYear() + "-" + twoDigits(1 + this.getUTCMonth()) + "-"
+        + twoDigits(this.getUTCDate()) + " " + twoDigits(this.getUTCHours()) + ":"
+        + twoDigits(this.getUTCMinutes()) + ":" + twoDigits(this.getUTCSeconds());
+};
 
 class DatabaseManager {
 
@@ -123,27 +138,25 @@ class DatabaseManager {
         })	
     }
     
-    user_add(firstname, secondname, patronymic, role, login, password, group){
-	this.#getConnection().then((conn) => {
-	    var sql = "insert into user (user_firstname, user_secondname, user_patronymic, user_login, user_password_hash) " +
-		"values ('" + firstname + "'," + secondname + ",'" + patronymic + "','" + login + "','" + password + "');";
+    user_add(user_info, callback){
+        this.#getConnection().then((conn) => {
+            var sql = "insert into user (user_firstname, user_lastname, user_patronymic, user_login, user_password_hash) "
+                + "values ('" + user_info.firstname + "', '" + user_info.lastname + "' ,'" + user_info.patronymic + "','"
+                + user_info.login + "','" + user_info.password + "');";
+
             conn.query(sql, (err, results, fields) => {
-		if (err) throw err;
-                conn.release();
+                var theDateTime = new Date();
+                if (err) throw err;
+                    callback(results.insertId);
+                var sql = "insert into user_has_role (role_id, group_id, user_id, uhr_granted) values ("
+                    + user_info.role + ", " + user_info.group + ", " + results.insertId
+                    + ", '" + theDateTime.toMysqlFormat() + "');"
+                conn.query(sql, (err, results, fields) => {
+                    if (err) throw err;
+                        conn.release();
+                });
             });
-	    connection.query('INSERT INTO posts SET ?', {title: 'test'}, function(err, result) {
-		if (err) throw err;
-		console.log(result.insertId);
-		var user_id = result.insertId;
-		var sql = "insert into user_has_role (role_id, group_id, user_id) values (" + role + ", " + group + ", " + user_id + ");"
-		conn.query(sql, (err, results, fields) => {
-		    if (err) throw err;
-                    conn.release();
-		});
-	    
-            
-	    });
-	})
+        })
     }
     
     user_get(callback, user_id){
