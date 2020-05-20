@@ -2,6 +2,8 @@ var express = require('express');
 var session = require('express-session');
 var bodyParser = require('body-parser');
 
+var cors = require('cors');
+
 var routes = require('./routes/login');
 
 var app = express();
@@ -14,6 +16,11 @@ app.use(session({
 app.use(express.static('public'));  // to support send static files
 app.use(bodyParser.urlencoded({extended : true}));
 app.use(bodyParser.json());
+
+app.use(cors({
+    origin: true,
+    credentials: true
+}));
 
 app.use('/', routes);
 app.use('/user', routes);
