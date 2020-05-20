@@ -151,9 +151,8 @@ router.get('/user/get', (req, res, next) => {
     output: JSON {subjects[{subject_id, subject_name, group_programe}]}
  */
 
-/* TODO test data*/
 router.get('/attendance/group', (req, res, next) => {
-    actions.list_attendance_group(req.query.group,(result) => {
+    actions.list_attendance_group(req.query.group_id,(result) => {
         if (result.length > 0) {
             let data = {
                 attendance: []
@@ -216,6 +215,26 @@ router.post('/subject/add', (req, res, next) => {
             res.send('add the user')
         } else {
             res.send('an error for add')
+        }
+    });
+});
+
+router.get('/lessons/list', (req, res, next) => {
+    actions.list_lessons_group(req.query.group_id,(result) => {
+        if (result.length > 0) {
+            res.send(JSON.stringify(result))
+        } else {
+            res.send('an error for add')
+        }
+    });
+});
+
+router.get('/lessons/get', (req, res, next) => {
+    actions.get_lesson_attendance(req.query.lessons_id,(result) => {
+        if (result.lesson_info.length > 0 && result.attendance.length > 0) {
+            res.send(JSON.stringify(result))
+        } else {
+            res.send('an error from lesson/get')
         }
     });
 });

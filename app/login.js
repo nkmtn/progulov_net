@@ -28,6 +28,7 @@ app.use('/group', routes);
 app.use('/lecturer', routes);
 app.use('/subject', routes);
 app.use('/attendance', routes);
+app.use('/lessons', routes);
 
 module.exports = app;
 

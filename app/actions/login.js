@@ -126,7 +126,7 @@ class DatabaseManager {
     
     list_attendance_group(group_id, callback){
 	this.#getConnection().then((conn) => {
-            var sql = "SELECT * FROM attendance, lessons, group WHERE " +
+            var sql = "SELECT * FROM attendance, lessons, `group` WHERE " +
 		"attendance.lessons_id = lessons.lessons_id AND lessons.group_id = group.group_id AND " +
 		"group.group_id = " + group_id + ";";
             conn.query(sql, (err, result, fields) => {
@@ -147,13 +147,13 @@ class DatabaseManager {
             conn.query(sql, (err, results, fields) => {
                 var theDateTime = new Date();
                 if (err) throw err;
-                    callback(results.insertId);
                 var sql = "insert into user_has_role (role_id, group_id, user_id, uhr_granted) values ("
                     + user_info.role + ", " + user_info.group + ", " + results.insertId
                     + ", '" + theDateTime.toMysqlFormat() + "');"
                 conn.query(sql, (err, results, fields) => {
                     if (err) throw err;
-                        conn.release();
+                    callback(results.insertId);
+                    conn.release();
                 });
             });
         })
@@ -171,13 +171,13 @@ class DatabaseManager {
     }
     
     user_hide(user_id){
-	this.#getConnection().then((conn) => {
+	    this.#getConnection().then((conn) => {
             var sql = "delete from spiceinfo where user_id=" + user_id + ";";
             conn.query(sql, (err, results, fields) => {
-		if (err) throw err;
+		        if (err) throw err;
                 conn.release();
             });
-	})
+	    })
     }
 
     add_subject(subject_info){
@@ -247,6 +247,51 @@ class DatabaseManager {
             });
 	    
 	})
+    }
+
+    list_lessons_group(group_id, callback){
+        this.#getConnection().then((conn) => {
+            var sql = "SELECT lessons.lessons_id, lessons.lessons_date, lessons.user_id, user.user_lastname, "
+            + "user.user_firstname, user.user_patronymic, lessons.subjects_id, subjects.subjects_name "
+            + "FROM lessons, user, subjects WHERE lessons.subjects_id=subjects.subjects_id AND "
+            + "lessons.user_id=user.user_id AND lessons.group_id=" + group_id + ";";
+            conn.query(sql, (err, results, fields) => {
+                if (err) throw err;
+                callback(results);
+                conn.release();
+            });
+        })
+    }
+
+    get_lesson_attendance(lessons_id, callback){
+        this.#getConnection().then((conn) => {
+            var sql = "SELECT lessons.lessons_id, lessons.lessons_date, lessons.user_id, user.user_lastname, "
+            + "user.user_firstname, user.user_patronymic, subjects.subjects_id, subjects.subjects_name "
+            + "FROM lessons, user, subjects WHERE lessons.subjects_id=subjects.subjects_id AND "
+            + "lessons.user_id=user.user_id AND lessons.lessons_id=" + lessons_id + ";";
+            conn.query(sql, (err, results, fields) => {
+                if (err) throw err;
+                var data ={
+                    lesson_info: [],
+                    attendance: []
+                };
+                for(var j = 0; j < results.length; j++){
+                    data.lesson_info.push(Object.assign({}, results[j]))
+                }
+                sql = "SELECT attendance.user_id, user.user_lastname, user.user_firstname, user.user_patronymic, " +
+                    "attendance.presence FROM attendance, user WHERE attendance.user_id=user.user_id AND " +
+                    "attendance.lessons_id=" + lessons_id + ";";
+                conn.query(sql, (err, results, fields) => {
+                    if (err) throw err;
+                    for(var j = 0; j < results.length; j++){
+                        data.attendance.push(Object.assign({}, results[j]))
+                    }
+                    console.log(data);
+                    callback(data);
+                    conn.release();
+                });
+            });
+        })
     }
 	
 }
