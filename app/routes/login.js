@@ -181,7 +181,7 @@ router.get('/attendance/group', (req, res, next) => {
         "role": 1,
         "login": "1721000",
         "password": "potom zashefryu",
-        "group": "22300"
+        "group_id": "2"
     }
     }
  */
@@ -250,11 +250,14 @@ router.get('/user/make-headman', (req, res, next) => {
 });
 
 router.get('/user/dismiss-headman', (req, res, next) => {
-    actions.dismiss_headman(req.query.user_id, req.query.group_id ,(result) => {
+    var data = {
+        groups:[{group_id: req.query.group_id}]
+    }
+    actions.dismiss_headman(data ,(result) => {
         if (result.length > 0) {
             res.send(JSON.stringify(result))
         } else {
-            res.send('an error from lesson/get')
+            res.send('an error from dismiss headman')
         }
     });
 });

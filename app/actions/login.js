@@ -11,15 +11,9 @@ function twoDigits(d) {
 }
 
 Date.prototype.toMysqlFormat = function() {
-    var date;
-    date = this.getUTCFullYear()
-    date +=  '-' + twoDigits(1 + this.getUTCMonth())
-    date += '-' + twoDigits(this.getUTCDate())
-    date += ' ' + twoDigits(this.getUTCHours())
-    date += ':' + twoDigits(this.getUTCMinutes())
-    date += ':' + twoDigits(this.getUTCSeconds())
-    date += '.123';
-    return date;
+    return this.getUTCFullYear() + '-' + twoDigits(1 + this.getUTCMonth()) + '-' + twoDigits(this.getUTCDate()) +
+        ' ' + twoDigits(this.getUTCHours()) + ':' + twoDigits(this.getUTCMinutes()) + ':' +
+        twoDigits(this.getUTCSeconds()) + '.123';
 };
 
 class DatabaseManager {
@@ -154,7 +148,7 @@ class DatabaseManager {
                 var theDateTime = new Date();
                 if (err) throw err;
                 var sql = "insert into user_has_role (role_id, group_id, user_id, uhr_granted) values ("
-                    + user_info.role + ", " + user_info.group + ", " + results.insertId
+                    + user_info.role + ", " + user_info.group_id + ", " + results.insertId
                     + ", '" + theDateTime.toMysqlFormat() + "');"
                 conn.query(sql, (err, results, fields) => {
                     if (err) throw err;
@@ -203,21 +197,27 @@ class DatabaseManager {
     // должна быть соответствующая роль в таблице role
     make_user_headman(user_id, group_id, callback){
         this.#getConnection().then((conn) => {
-            var sql = "SELECT user_id, group_id FROM user_has_role WHERE role_id=" +
+            var sql = "SELECT group_id FROM user_has_role WHERE role_id=" +
                 "(SELECT role.role_id FROM role WHERE role.role_code = " + 3 + ")" +" AND group_id=" + group_id + ";";
             conn.query(sql, (err, results, fields) => {
                 if (err) throw err;
-                if (results > 0)
-                    this.dismiss_headman(results, (results) =>{
-                        if(results < 0){
+                if (results.length > 0)
+                    var data = {
+                        groups:[]
+                    }
+                    for(var j = 0; j < results.length; j++){
+                        data.groups.push(Object.assign({}, results[j]))
+                    }
+                    this.dismiss_headman(data, (results) =>{
+                        if(results.length < 0){
                             callback(NULL);
                             conn.release();
                         }
                     })
                 var theDateTime = new Date();
                 sql = "INSERT INTO user_has_role" + "(user_id, role_id, group_id, uhr_granted) values (" +
-                    user_id + " , (SELECT role.role_id FROM role WHERE role.role_code = " + 3 + "), " + group_id + ", " +
-                    "uhr_granted='" + theDateTime.toMysqlFormat() + "');";
+                    user_id + " , (SELECT role.role_id FROM role WHERE role.role_code = " + 3 + "), " + group_id + ", '" +
+                    theDateTime.toMysqlFormat()+ "');";
                 conn.query(sql, (err, results, fields) => {
                     if (err) throw err;
                     callback(user_id);
@@ -228,16 +228,19 @@ class DatabaseManager {
     }
 
     // упроздняет старосту в группе
-    dismiss_headman(headman, callback){
+    dismiss_headman(data, callback){
         this.#getConnection().then((conn) => {
             var theDateTime = new Date();
-            var sql = "UPDATE user_has_role SET uhr_revoked="+ theDateTime.toMysqlFormat() +
-                "WHERE group_id = " + headman.group_id + " AND user_id=" + headman.user_id+
-                "role_id = (SELECT role.role_id FROM role WHERE role.role_code = 3);";
+            var sql = "UPDATE user_has_role SET uhr_revoked='"+ theDateTime.toMysqlFormat() +
+                "' WHERE group_id IN( " ;
+            console.log(data, data.groups.length, data.groups[0].group_id)
+            for(var i = 0; i < data.groups.length; i++)
+                sql += data.groups[i].group_id + ", ";
+            sql += "-1" + ") AND role_id = (SELECT role.role_id FROM role WHERE role.role_code = 3);";
+            console.log(sql)
             conn.query(sql, (err, results, fields) => {
                 if (err) throw err;
-                if (results > 0)
-                    callback(1);
+                callback(1);
                 conn.release();
             });
         })
