@@ -319,7 +319,22 @@ class DatabaseManager {
             });
         })
     }
-	
+
+
+    add_lesson(lesson_info, callback){
+        this.#getConnection().then((conn) => {
+            var sql = "insert into lessons (date, subjects_id, group_id, user_id) "
+                + "values ('" + lessons.date + "', '" + lessons.subjects_id + "' ,'" +
+		lessons.group_id + "','" + lessons.user_id + "');";
+
+            conn.query(sql, (err, results, fields) => {
+                    if (err) throw err;
+                    callback(results.insertId);
+                    conn.release();
+            });
+        })
+    }
+
 }
 
 module.exports = new DatabaseManager(); // singltone object
