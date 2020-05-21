@@ -129,7 +129,8 @@ class DatabaseManager {
 	this.#getConnection().then((conn) => {
             var sql = "SELECT * FROM attendance, lessons, `group` WHERE " +
 		"attendance.lessons_id = lessons.lessons_id AND lessons.group_id = group.group_id AND " +
-		"group.group_id = " + group_id + ";";
+		"group.group_id = " + group_id + "\n" +
+		"GROUP BY lessons.lessons_date";
             conn.query(sql, (err, result, fields) => {
                     if (err) throw err;
                         callback(result);
