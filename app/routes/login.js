@@ -239,4 +239,24 @@ router.get('/lessons/get', (req, res, next) => {
     });
 });
 
+router.get('/user/make-headman', (req, res, next) => {
+    actions.make_user_headman(req.query.user_id, req.query.group_id ,(result) => {
+        if (result.length > 0) {
+            res.send(JSON.stringify(result))
+        } else {
+            res.send('an error from lesson/get')
+        }
+    });
+});
+
+router.get('/user/dismiss-headman', (req, res, next) => {
+    actions.dismiss_headman(req.query.user_id, req.query.group_id ,(result) => {
+        if (result.length > 0) {
+            res.send(JSON.stringify(result))
+        } else {
+            res.send('an error from lesson/get')
+        }
+    });
+});
+
 module.exports = router;

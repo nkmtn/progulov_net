@@ -11,9 +11,15 @@ function twoDigits(d) {
 }
 
 Date.prototype.toMysqlFormat = function() {
-    return this.getUTCFullYear() + "-" + twoDigits(1 + this.getUTCMonth()) + "-"
-        + twoDigits(this.getUTCDate()) + " " + twoDigits(this.getUTCHours()) + ":"
-        + twoDigits(this.getUTCMinutes()) + ":" + twoDigits(this.getUTCSeconds());
+    var date;
+    date = this.getUTCFullYear()
+    date +=  '-' + twoDigits(1 + this.getUTCMonth())
+    date += '-' + twoDigits(this.getUTCDate())
+    date += ' ' + twoDigits(this.getUTCHours())
+    date += ':' + twoDigits(this.getUTCMinutes())
+    date += ':' + twoDigits(this.getUTCSeconds())
+    date += '.123';
+    return date;
 };
 
 class DatabaseManager {
@@ -193,32 +199,48 @@ class DatabaseManager {
     }
 
     // сделать старостой
+    // если староста в группе уже назначет, он упразняется
     // должна быть соответствующая роль в таблице role
-    make_user_headman(user_id, group_id){
+    make_user_headman(user_id, group_id, callback){
         this.#getConnection().then((conn) => {
-            var sql = "INSERT INTO user_has_role\n" +
-            "(user_id, role_id, group_id) values (" + user_id + ", (SELECT role.role_id FROM role WHERE role.role_code = " + 3 + ", + " + group_id + ");";
+            var sql = "SELECT user_id, group_id FROM user_has_role WHERE role_id=" +
+                "(SELECT role.role_id FROM role WHERE role.role_code = " + 3 + ")" +" AND group_id=" + group_id + ";";
+            conn.query(sql, (err, results, fields) => {
+                if (err) throw err;
+                if (results > 0)
+                    this.dismiss_headman(results, (results) =>{
+                        if(results < 0){
+                            callback(NULL);
+                            conn.release();
+                        }
+                    })
+                var theDateTime = new Date();
+                sql = "INSERT INTO user_has_role" + "(user_id, role_id, group_id, uhr_granted) values (" +
+                    user_id + " , (SELECT role.role_id FROM role WHERE role.role_code = " + 3 + "), " + group_id + ", " +
+                    "uhr_granted='" + theDateTime.toMysqlFormat() + "');";
                 conn.query(sql, (err, results, fields) => {
-            if (err) throw err;
+                    if (err) throw err;
+                    callback(user_id);
                     conn.release();
                 });
-
+            });
         })
     }
 
-    // упроздняет всех старост в группе
-    dismiss_headmans(group_id){
-
-	this.#getConnection().then((conn) => {
-	    var sql = "DELETE FROM user_has_role\n" +
-		"WHERE group_id = " + group_id +
-		", role_id = (SELECT role.role_id FROM role WHERE role.role_code = 3);"; 
+    // упроздняет старосту в группе
+    dismiss_headman(headman, callback){
+        this.#getConnection().then((conn) => {
+            var theDateTime = new Date();
+            var sql = "UPDATE user_has_role SET uhr_revoked="+ theDateTime.toMysqlFormat() +
+                "WHERE group_id = " + headman.group_id + " AND user_id=" + headman.user_id+
+                "role_id = (SELECT role.role_id FROM role WHERE role.role_code = 3);";
             conn.query(sql, (err, results, fields) => {
-		if (err) throw err;
+                if (err) throw err;
+                if (results > 0)
+                    callback(1);
                 conn.release();
             });
-	    
-	})
+        })
     }
     
 
@@ -234,8 +256,7 @@ class DatabaseManager {
 	    
 	})
     }
-    
-    // упроздняет всех старост в группе
+
     delete_lesson(lesson_id){
 
 	this.#getConnection().then((conn) => {

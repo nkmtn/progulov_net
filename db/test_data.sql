@@ -1,6 +1,7 @@
 INSERT INTO `mydb`.`group` (group_number, group_programe, group_description) VALUES ('22300', '09.00.00', NULL), ('22399', '09.00.00', NULL);
 
-INSERT INTO `mydb`.`role` (role_code, role_title, role_description) VALUES ('0', 'student', NULL), ('1', 'directorate', NULL), ('2', 'lecturer', NULL);
+INSERT INTO `mydb`.`role` (role_code, role_title, role_description) VALUES ('0', 'student', NULL), ('1', 'directorate', NULL),
+('2', 'lecturer', NULL), ('3', 'headman', NULL);
 
 INSERT INTO `mydb`.`subjects` (subjects_name, subjects_programe) VALUES ('Теория производства ПО', '09.00.00'), ('Модели разработки ПО', '09.00.00'), ('Web-технологии II', '09.00.00');
 
