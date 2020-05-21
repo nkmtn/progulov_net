@@ -129,8 +129,7 @@ class DatabaseManager {
 	this.#getConnection().then((conn) => {
             var sql = "SELECT * FROM attendance, lessons, `group` WHERE " +
 		"attendance.lessons_id = lessons.lessons_id AND lessons.group_id = group.group_id AND " +
-		"group.group_id = " + group_id + "\n" +
-		"GROUP BY lessons.lessons_date";
+		"group.group_id = " + group_id + ";";
             conn.query(sql, (err, result, fields) => {
                     if (err) throw err;
                         callback(result);
@@ -278,9 +277,10 @@ class DatabaseManager {
     list_lessons_group(group_id, callback){
         this.#getConnection().then((conn) => {
             var sql = "SELECT lessons.lessons_id, lessons.lessons_date, lessons.user_id, user.user_lastname, "
-            + "user.user_firstname, user.user_patronymic, lessons.subjects_id, subjects.subjects_name "
-            + "FROM lessons, user, subjects WHERE lessons.subjects_id=subjects.subjects_id AND "
-            + "lessons.user_id=user.user_id AND lessons.group_id=" + group_id + ";";
+		+ "user.user_firstname, user.user_patronymic, lessons.subjects_id, subjects.subjects_name "
+		+ "FROM lessons, user, subjects GROUP BY DAY(lessons.lessons_date) "
+	        + "HAVING lessons.subjects_id=subjects.subjects_id AND "
+		+ "lessons.user_id=user.user_id AND lessons.group_id=" + group_id + ";";
             conn.query(sql, (err, results, fields) => {
                 if (err) throw err;
                 callback(results);
