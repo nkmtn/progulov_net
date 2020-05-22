@@ -76,12 +76,12 @@ class DatabaseManager {
 
         this.#getConnection().then((conn) => {
             var sql = "SELECT user.user_id, user.user_lastname, user.user_firstname, user.user_patronymic FROM user, user_has_role, role\n" +
-		"WHERE user_has_role.user_id = user.user_id AND\n" +
-		"user_has_role.role_id = role.role_id;";
+		"WHERE user_has_role.user_id = user.user_id AND user_has_role.uhr_revoked is null AND " +
+		"user_has_role.role_id = role.role_id AND user_has_role.role_id=(SELECT role.role_id FROM role WHERE role.role_code = " + 2 + ")" + ";"
             conn.query(sql, (err, result, fields) => {
                     if (err) throw err;
                         callback(result);
-                    console.log("select: ok");
+                    console.log(result);
                     conn.release();
                 });
         })
