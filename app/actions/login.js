@@ -110,30 +110,64 @@ class DatabaseManager {
         })	
     }
 
-    list_attendance(callback){
-	this.#getConnection().then((conn) => {
-            var sql = "SELECT * FROM attendance;";
+    list_attendance_for_group(group_id, callback){
+        this.#getConnection().then((conn) => {
+            var data = {
+                groups: [],
+                lessons: []
+            }
+            var sql = "SELECT group_number FROM `group` WHERE group_id = "+ group_id + ";";
             conn.query(sql, (err, result, fields) => {
+                if (err) throw err;
+                data.groups.push((Object.assign({},{group_id, group_number: result[0].group_number,
+                    users: []})))
+
+                sql = "SELECT lessons.lessons_id, CONVERT(lessons_date, CHAR) as lessons_date, lessons.user_id, user.user_lastname, "
+                    + "user.user_firstname, user.user_patronymic, lessons.subjects_id, subjects.subjects_name "
+                    + "FROM lessons, user, subjects WHERE lessons.subjects_id=subjects.subjects_id AND "
+                    + "lessons.user_id=user.user_id AND lessons.group_id=" + group_id + " ORDER BY lessons.lessons_date;";
+                conn.query(sql, (err, result, fields) => {
                     if (err) throw err;
-                        callback(result);
-                    console.log("select: ok");
-                    conn.release();
+                    for (var i = 0; i < result.length; i++){
+                        data.lessons.push(Object.assign({}, result[i]))
+                    }
+
+                    sql = "SELECT user.user_id, user.user_lastname, user.user_firstname, user.user_patronymic, " +
+                        "attendance.lessons_id, attendance.presence FROM user, attendance " +
+                        "WHERE user.user_id=attendance.user_id AND attendance.user_id IN (SELECT user_id FROM " +
+                        "user_has_role WHERE role_id=(SELECT role_id FROM role WHERE role_code=0) AND group_id=1) " +
+                        "ORDER BY user.user_id;";
+                    conn.query(sql, (err, result, fields) => {
+                        if (err) throw err;
+                        var current_user = {
+                            user_id: result[0].user_id,
+                            user_lastname: result[0].user_lastname,
+                            user_firstname: result[0].user_firstname,
+                            user_patronymic: result[0].user_patronymic,
+                            attendance: []
+                        }
+                        for (var i = 0; i < result.length; i++){
+                            if (current_user.user_id === result[i].user_id){
+                                current_user.attendance.push({ lessons_id: result[i].lessons_id,
+                                    presence: result[i].presence})
+                            } else {
+                                data.groups[0].users.push(current_user)
+                                current_user = {
+                                    user_id: result[i].user_id,
+                                    user_lastname: result[i].user_lastname,
+                                    user_firstname: result[i].user_firstname,
+                                    user_patronymic: result[i].user_patronymic,
+                                    attendance: []
+                                }
+                            }
+                        }
+                        data.groups[0].users.push(current_user)
+                        callback(data)
+                        conn.release();
+                    });
                 });
-        })	
-    }
-    
-    list_attendance_group(group_id, callback){
-	this.#getConnection().then((conn) => {
-            var sql = "SELECT * FROM attendance, lessons, `group` WHERE " +
-		"attendance.lessons_id = lessons.lessons_id AND lessons.group_id = `group`.group_id AND " +
-		"`group`.group_id = " + group_id + ";";
-            conn.query(sql, (err, result, fields) => {
-                    if (err) throw err;
-                        callback(result);
-                    console.log("select: ok");
-                    conn.release();
-                });
-        })	
+            });
+        })
     }
     
     user_add(user_info, callback){

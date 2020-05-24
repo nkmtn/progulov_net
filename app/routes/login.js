@@ -146,29 +146,6 @@ router.get('/user/get', (req, res, next) => {
 });
 
 /*
-    function to get all the subjects
-    input: NONE
-    output: JSON {subjects[{subject_id, subject_name, group_programe}]}
- */
-
-router.get('/attendance/group', (req, res, next) => {
-    actions.list_attendance_group(req.query.group_id,(result) => {
-        if (result.length > 0) {
-            let data = {
-                attendance: []
-            };
-            for(var j = 0; j < result.length; j++){
-                data.attendance.push(Object.assign({}, result[j]))
-            }
-            console.log(JSON.stringify(data));
-            res.send(JSON.stringify(data));
-        }else {
-            res.send('err select list of subjects');
-        }
-    });
-});
-
-/*
     input: JSON(example below)
     output: confirm message
 
@@ -284,6 +261,17 @@ router.get('/user/dismiss-headman', (req, res, next) => {
             res.send(JSON.stringify(result))
         } else {
             res.send('an error from dismiss headman')
+        }
+    });
+});
+
+
+router.get('/attendance/group', (req, res, next) => {
+    actions.list_attendance_for_group(req.query.group_id ,(result) => {
+        if (result.groups.length > 0) {
+            res.send(JSON.stringify(result))
+        } else {
+            res.send('err get attendance')
         }
     });
 });
