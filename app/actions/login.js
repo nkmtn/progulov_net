@@ -73,19 +73,16 @@ class DatabaseManager {
     }
 
     list_teachers(callback){
-
         this.#getConnection().then((conn) => {
-            var sql = "SELECT user.user_id, user.user_lastname, user.user_firstname, user.user_patronymic FROM user, user_has_role, role\n" +
-		"WHERE user_has_role.user_id = user.user_id AND user_has_role.uhr_revoked is null AND " +
-		"user_has_role.role_id = role.role_id AND user_has_role.role_id=(SELECT role.role_id FROM role WHERE role.role_code = " + 2 + ")" + ";"
+            var sql = "SELECT user.user_id, user.user_lastname, user.user_firstname, user.user_patronymic FROM user, user_has_role\n" +
+                "WHERE user_has_role.user_id = user.user_id AND user_has_role.subjects_id is null " +
+                " AND user_has_role.role_id=(SELECT role.role_id FROM role WHERE role.role_code = " + 2 + ")" + ";"
             conn.query(sql, (err, result, fields) => {
                     if (err) throw err;
                         callback(result);
-                    console.log(result);
                     conn.release();
                 });
         })
-
     }
 
     list_groups(callback){
@@ -128,8 +125,8 @@ class DatabaseManager {
     list_attendance_group(group_id, callback){
 	this.#getConnection().then((conn) => {
             var sql = "SELECT * FROM attendance, lessons, `group` WHERE " +
-		"attendance.lessons_id = lessons.lessons_id AND lessons.group_id = group.group_id AND " +
-		"group.group_id = " + group_id + ";";
+		"attendance.lessons_id = lessons.lessons_id AND lessons.group_id = `group`.group_id AND " +
+		"`group`.group_id = " + group_id + ";";
             conn.query(sql, (err, result, fields) => {
                     if (err) throw err;
                         callback(result);
@@ -276,11 +273,11 @@ class DatabaseManager {
 
     list_lessons_group(group_id, callback){
         this.#getConnection().then((conn) => {
-            var sql = "SELECT lessons.lessons_id, lessons.lessons_date, lessons.user_id, user.user_lastname, "
+            var sql = "SELECT lessons.lessons_id, CONVERT(lessons_date, CHAR) as lessons_date, lessons.user_id, user.user_lastname, "
 		+ "user.user_firstname, user.user_patronymic, lessons.subjects_id, subjects.subjects_name "
-		+ "FROM lessons, user, subjects GROUP BY DAY(lessons.lessons_date) "
-	        + "HAVING lessons.subjects_id=subjects.subjects_id AND "
-		+ "lessons.user_id=user.user_id AND lessons.group_id=" + group_id + ";";
+		+ "FROM lessons, user, subjects "
+	        + "WHERE lessons.subjects_id=subjects.subjects_id AND "
+		+ "lessons.user_id=user.user_id AND lessons.group_id=" + group_id + " ORDER BY lessons.lessons_date;";
             conn.query(sql, (err, results, fields) => {
                 if (err) throw err;
                 callback(results);

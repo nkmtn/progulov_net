@@ -222,7 +222,33 @@ router.post('/subject/add', (req, res, next) => {
 router.get('/lessons/list', (req, res, next) => {
     actions.list_lessons_group(req.query.group_id,(result) => {
         if (result.length > 0) {
-            res.send(JSON.stringify(result))
+            var date = {}
+            var j = 0;
+            date[0] = (result[0].lessons_date).substr(0, 10)
+            for (var i = 1; i < result.length; i++){
+                for (var key in date){
+                    if (date[key] !== (result[i].lessons_date).substr(0, 10))
+                        date[key + 1] = (result[i].lessons_date).substr(0, 10)
+                }
+            }
+            var data = {
+                dates: []
+            }
+            for (var key in date){
+                data.dates.push(Object.assign({}, {date: date[key], lessons:[]}))
+            }
+            for (var i = 1; i < result.length; i++){
+                for (var j = 0; j < data.dates.length ;j++){
+                    if (data.dates[j].date == (result[i].lessons_date).substr(0, 10))
+                        data.dates[j].lessons.push(Object.assign({}, {lesson_id: result[i].lesson_id,
+                            lesson_time: (result[i].lessons_date).substr(11, 8) , user_id: result[i].user_id,
+                            user_lastname: result[i].user_lastname, user_firstname: result[i].user_firstname,
+                            user_patronymic: result[i].user_patronymic, subjects_id: result[i].subjects_id,
+                            subjects_name: result[i].subjects_name
+                        }))
+                }
+            }
+            res.send(JSON.stringify(data))
         } else {
             res.send('an error for add')
         }
