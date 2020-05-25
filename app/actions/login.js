@@ -47,29 +47,27 @@ class DatabaseManager {
         this.#getConnection().then((conn) => {
             var sql = "SELECT * FROM user WHERE user_login ='"+ login +"' AND user_password_hash = '" + password + "';";
             conn.query(sql, (err, result, fields) => {
-                    if (err) throw err;
-                        callback(result);
-                    console.log("select: ok");
-                    conn.release();
-                });
+                if (err) throw err;
+                callback(result);
+                console.log("select: ok");
+                conn.release();
+            });
         })
     }
 
 
     list_students(group_id, callback){
-
         this.#getConnection().then((conn) => {
             var sql = "SELECT user.user_id, user.user_lastname, user.user_firstname, user.user_patronymic FROM user, user_has_role\n" +
-		"WHERE user_has_role.group_id = '" + group_id +
-		"' AND user_has_role.user_id = user.user_id ;";
+		        "WHERE user_has_role.group_id = '" + group_id +
+		        "' AND user_has_role.user_id = user.user_id ;";
             conn.query(sql, (err, result, fields) => {
-                    if (err) throw err;
-                        callback(result);
-                    console.log("select: ok");
-                    conn.release();
-                });
+                if (err) throw err;
+                callback(result);
+                console.log("select: ok");
+                conn.release();
+            });
         })
-
     }
 
     list_teachers(callback){
@@ -78,10 +76,16 @@ class DatabaseManager {
                 "WHERE user_has_role.user_id = user.user_id AND user_has_role.subjects_id is null " +
                 " AND user_has_role.role_id=(SELECT role.role_id FROM role WHERE role.role_code = " + 2 + ")" + ";"
             conn.query(sql, (err, result, fields) => {
-                    if (err) throw err;
-                        callback(result);
-                    conn.release();
-                });
+                if (err) throw err;
+                let data = {
+                    lecturers: []
+                };
+                for(var j = 0; j < result.length; j++){
+                    data.lecturers.push(Object.assign({}, result[j]))
+                }
+                callback(data);
+                conn.release();
+            });
         })
     }
 
@@ -89,24 +93,35 @@ class DatabaseManager {
         this.#getConnection().then((conn) => {
             var sql = "SELECT * FROM `group`;";
             conn.query(sql, (err, result, fields) => {
-                    if (err) throw err;
-                        callback(result);
-                    console.log("select: ok");
-                    conn.release();
-                });
+                if (err) throw err;
+                let data = {
+                    groups: []
+                };
+                for(var j = 0; j < result.length; j++){
+                    data.groups.push(Object.assign({}, result[j]))
+                }
+                callback(data);
+                console.log("select: ok");
+                conn.release();
+            });
         })
-
     }
 
     list_subjects(callback){
         this.#getConnection().then((conn) => {
             var sql = "SELECT * FROM subjects;";
             conn.query(sql, (err, result, fields) => {
-                    if (err) throw err;
-                        callback(result);
-                    console.log("select: ok");
-                    conn.release();
-                });
+                if (err) throw err;
+                let data = {
+                    subjects: []
+                };
+                for(var j = 0; j < result.length; j++){
+                    data.subjects.push(Object.assign({}, result[j]))
+                }
+                callback(data);
+                console.log("select: ok");
+                conn.release();
+            });
         })	
     }
 
@@ -192,14 +207,14 @@ class DatabaseManager {
     }
     
     user_get(user_id, callback){
-	this.#getConnection().then((conn) => {
-	    var sql = "select * from user where user_id='" + user_id + "';";
-        conn.query(sql, (err, results, fields) => {
-		    if (err) throw err;
+        this.#getConnection().then((conn) => {
+            var sql = "select * from user where user_id='" + user_id + "';";
+            conn.query(sql, (err, results, fields) => {
+                if (err) throw err;
                 callback(results);
                 conn.release();
-        });
-	})
+            });
+        })
     }
     
     user_hide(user_id){
@@ -219,7 +234,7 @@ class DatabaseManager {
             "values ('" + subject_info.name + "', '" + subject_info.programe + "');";
             conn.query(sql, (err, results, fields) => {
                 if (err) throw err;
-                    conn.release();
+                conn.release();
             });
         })
     }
@@ -280,29 +295,25 @@ class DatabaseManager {
     
 
     add_lesson(subjects_id, group_id, teacher_id, date){
-	
-	this.#getConnection().then((conn) => {
-	    var sql = "insert into lessons (lessons_date, subjects_id, group_id, user_id) " +
-		"values (" + date + ", " + subjects_id + ", " + group_id + ", " + teacher_id + ");";
+        this.#getConnection().then((conn) => {
+            var sql = "insert into lessons (lessons_date, subjects_id, group_id, user_id) " +
+                "values (" + date + ", " + subjects_id + ", " + group_id + ", " + teacher_id + ");";
             conn.query(sql, (err, results, fields) => {
-		if (err) throw err;
+                if (err) throw err;
                 conn.release();
             });
-	    
-	})
+        })
     }
 
     delete_lesson(lesson_id){
-
-	this.#getConnection().then((conn) => {
-	    var sql = "DELETE FROM lessons\n" +
-		"WHERE lessons_id = " + lessons_id + ";"; 
+        this.#getConnection().then((conn) => {
+            var sql = "DELETE FROM lessons\n" +
+            "WHERE lessons_id = " + lessons_id + ";";
             conn.query(sql, (err, results, fields) => {
-		if (err) throw err;
+                if (err) throw err;
                 conn.release();
             });
-	    
-	})
+        })
     }
 
     list_lessons_group(group_id, callback){
@@ -312,9 +323,35 @@ class DatabaseManager {
 		+ "FROM lessons, user, subjects "
 	        + "WHERE lessons.subjects_id=subjects.subjects_id AND "
 		+ "lessons.user_id=user.user_id AND lessons.group_id=" + group_id + " ORDER BY lessons.lessons_date;";
-            conn.query(sql, (err, results, fields) => {
+            conn.query(sql, (err, result, fields) => {
                 if (err) throw err;
-                callback(results);
+                var date = {}
+                var j = 0;
+                date[0] = (result[0].lessons_date).substr(0, 10)
+                for (var i = 1; i < result.length; i++){
+                    for (var key in date){
+                        if (date[key] !== (result[i].lessons_date).substr(0, 10))
+                            date[key + 1] = (result[i].lessons_date).substr(0, 10)
+                    }
+                }
+                var data = {
+                    dates: []
+                }
+                for (var key in date){
+                    data.dates.push(Object.assign({}, {date: date[key], lessons:[]}))
+                }
+                for (var i = 1; i < result.length; i++){
+                    for (var j = 0; j < data.dates.length ;j++){
+                        if (data.dates[j].date == (result[i].lessons_date).substr(0, 10))
+                            data.dates[j].lessons.push(Object.assign({}, {lesson_id: result[i].lesson_id,
+                                lesson_time: (result[i].lessons_date).substr(11, 8) , user_id: result[i].user_id,
+                                user_lastname: result[i].user_lastname, user_firstname: result[i].user_firstname,
+                                user_patronymic: result[i].user_patronymic, subjects_id: result[i].subjects_id,
+                                subjects_name: result[i].subjects_name
+                            }))
+                    }
+                }
+                callback(data);
                 conn.release();
             });
         })
@@ -356,16 +393,14 @@ class DatabaseManager {
         this.#getConnection().then((conn) => {
             var sql = "insert into lessons (date, subjects_id, group_id, user_id) "
                 + "values ('" + lessons.date + "', '" + lessons.subjects_id + "' ,'" +
-		lessons.group_id + "','" + lessons.user_id + "');";
-
+		    lessons.group_id + "','" + lessons.user_id + "');";
             conn.query(sql, (err, results, fields) => {
-                    if (err) throw err;
-                    callback(results.insertId);
-                    conn.release();
+                if (err) throw err;
+                callback(results.insertId);
+                conn.release();
             });
         })
     }
-
 }
 
 module.exports = new DatabaseManager(); // singltone object

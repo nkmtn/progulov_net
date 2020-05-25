@@ -8,6 +8,12 @@ router.get('/', (req, res, next) =>{
     res.sendFile(path.resolve('public/login.html'));
 });
 
+/*
+    function to make the simplest autorisation
+    input: NONE
+    output: NONE
+ */
+
 router.post('/auth', (req, res, next) =>{
     var login = req.body.username;
     var password = req.body.password;
@@ -28,6 +34,11 @@ router.post('/auth', (req, res, next) =>{
     }
 });
 
+/*
+    function to get main page
+    input: NONE
+    output: NONE
+ */
 
 router.get('/home', (req, res, next) =>{
     if (req.session.loggedin) {
@@ -38,6 +49,11 @@ router.get('/home', (req, res, next) =>{
     res.end();
 });
 
+/*
+    function to get list of students for the groups
+    input: group_id
+    output: JSON {group_id, students:[{lastname...}]}
+ */
 
 router.get('/student/list', (req, res, next) =>{
     actions.list_students(req.query.group, (result) => {
@@ -63,20 +79,13 @@ router.get('/student/list', (req, res, next) =>{
 /*
     function to get all the groups
     input: NONE
-    output: JSON {groups[{group_id, group_title, group_programe, group_description}]}
+    output: JSON {groups[{group_id, group_number, group_programe, group_description}]}
  */
 
 router.get('/group/list', (req, res, next) => {
     actions.list_groups((result) => {
-        if (result.length > 0) {
-            let data = {
-                groups: []
-            };
-            for(var j = 0; j < result.length; j++){
-                data.groups.push(Object.assign({}, result[j]))
-            }
-            console.log(JSON.stringify(data));
-            res.send(JSON.stringify(data));
+        if (result.groups.length > 0) {
+            res.send(JSON.stringify(result));
         }else {
             res.send('err select list of groups');
         }
@@ -91,15 +100,8 @@ router.get('/group/list', (req, res, next) => {
 
 router.get('/lecturer/list', (req, res, next) => {
     actions.list_teachers((result) => {
-        if (result.length > 0) {
-            let data = {
-                lecturers: []
-            };
-            for(var j = 0; j < result.length; j++){
-                data.lecturers.push(Object.assign({}, result[j]))
-            }
-            console.log(JSON.stringify(data));
-            res.send(JSON.stringify(data));
+        if (result.lecturers.length > 0) {
+            res.send(JSON.stringify(result));
         }else {
             res.send('err select list of lecturers');
         }
@@ -109,20 +111,13 @@ router.get('/lecturer/list', (req, res, next) => {
 /*
     function to get all the subjects
     input: NONE
-    output: JSON {subjects[{subject_id, subject_name, group_programe}]}
+    output: JSON {subjects[{subject_id, subjects_name, subjects_programe}]}
  */
 
 router.get('/subjects/list', (req, res, next) => {
     actions.list_subjects((result) => {
-        if (result.length > 0) {
-            let data = {
-                subjects: []
-            };
-            for(var j = 0; j < result.length; j++){
-                data.subjects.push(Object.assign({}, result[j]))
-            }
-            console.log(JSON.stringify(data));
-            res.send(JSON.stringify(data));
+        if (result.subjects.length > 0) {
+            res.send(JSON.stringify(result));
         }else {
             res.send('err select list of subjects');
         }
@@ -130,9 +125,9 @@ router.get('/subjects/list', (req, res, next) => {
 });
 
 /*
-    function to get the one user by id
+    function to get information about the user by id
     input: user_id
-    output: {"user": {firstname...}}
+    output: {"user": {lastname, firstname...}}
  */
 
 router.get('/user/get', (req, res, next) => {
@@ -146,6 +141,7 @@ router.get('/user/get', (req, res, next) => {
 });
 
 /*
+    function to add information about a new user
     input: JSON(example below)
     output: confirm message
 
@@ -174,6 +170,7 @@ router.post('/student/add', (req, res, next) => {
 });
 
 /*
+    function to add information about a new subject
     input: JSON(example below)
     output: confirm message
 
@@ -196,41 +193,35 @@ router.post('/subject/add', (req, res, next) => {
     });
 });
 
+/*
+    function to get all lessons for the group
+    input: JSON(example below)
+    output: confirm message
+
+    test body:
+    {
+    "subject": {
+        "name": "Введение в тестирование",
+        "programe": "09.00.00"
+    }
+    }
+ */
+
 router.get('/lessons/list', (req, res, next) => {
     actions.list_lessons_group(req.query.group_id,(result) => {
-        if (result.length > 0) {
-            var date = {}
-            var j = 0;
-            date[0] = (result[0].lessons_date).substr(0, 10)
-            for (var i = 1; i < result.length; i++){
-                for (var key in date){
-                    if (date[key] !== (result[i].lessons_date).substr(0, 10))
-                        date[key + 1] = (result[i].lessons_date).substr(0, 10)
-                }
-            }
-            var data = {
-                dates: []
-            }
-            for (var key in date){
-                data.dates.push(Object.assign({}, {date: date[key], lessons:[]}))
-            }
-            for (var i = 1; i < result.length; i++){
-                for (var j = 0; j < data.dates.length ;j++){
-                    if (data.dates[j].date == (result[i].lessons_date).substr(0, 10))
-                        data.dates[j].lessons.push(Object.assign({}, {lesson_id: result[i].lesson_id,
-                            lesson_time: (result[i].lessons_date).substr(11, 8) , user_id: result[i].user_id,
-                            user_lastname: result[i].user_lastname, user_firstname: result[i].user_firstname,
-                            user_patronymic: result[i].user_patronymic, subjects_id: result[i].subjects_id,
-                            subjects_name: result[i].subjects_name
-                        }))
-                }
-            }
-            res.send(JSON.stringify(data))
+        if (result.dates.length > 0) {
+            res.send(JSON.stringify(result))
         } else {
             res.send('an error for add')
         }
     });
 });
+
+/*
+    function to get information about the lesson
+    input: lesson_id
+    output: {lessons_info:[{lessons_id, lessons_date...}]}
+*/
 
 router.get('/lessons/get', (req, res, next) => {
     actions.get_lesson_attendance(req.query.lessons_id,(result) => {
@@ -242,6 +233,12 @@ router.get('/lessons/get', (req, res, next) => {
     });
 });
 
+/*
+    function to make the student a headman
+    input: user_id, group_id
+    output: user_id
+*/
+
 router.get('/user/make-headman', (req, res, next) => {
     actions.make_user_headman(req.query.user_id, req.query.group_id ,(result) => {
         if (result.length > 0) {
@@ -251,6 +248,12 @@ router.get('/user/make-headman', (req, res, next) => {
         }
     });
 });
+
+/*
+    function to dismiss the headman
+    input: group_id
+    output: user_id
+*/
 
 router.get('/user/dismiss-headman', (req, res, next) => {
     var data = {
@@ -265,6 +268,11 @@ router.get('/user/dismiss-headman', (req, res, next) => {
     });
 });
 
+/*
+    function to get attendance for the group (all time)
+    input: group_id
+    output: user_id
+*/
 
 router.get('/attendance/group', (req, res, next) => {
     actions.list_attendance_for_group(req.query.group_id ,(result) => {
